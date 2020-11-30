@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include "errors.h"
+#include "network.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -55,34 +57,10 @@ int main(int argc, char **argv) {
 		log_error("Fail to set interrupt handler");
 	}
 
-	// create socket
-	int listener_d = socket(PF_INET, SOCK_STREAM, 0);
-	if (listener_d == -1) {
-		log_error("Create socket failed");
-	}
+	const int listener_d = network_open_server_socket(1030);
+	network_listen_server_socket(listener_d);
 
-	// bind params
-	struct sockaddr_in name;
-	name.sin_family = PF_INET;
-	name.sin_port = (in_port_t) htons(30000);
-	name.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	// set reuse option
-	int reuse = 1;
-	if (setsockopt(listener_d, SOL_SOCKET, SO_REUSEADDR, (char*) &reuse, sizeof(int)) == 1) {
-		log_error("Set reuse failed");
-	}
-
-	// bind socket
-	const int c = bind(listener_d, (struct sockaddr*) &name, sizeof(name));
-	if (c == -1) {
-		log_error("Bind failed");
-	}
-	if (listen(listener_d, 10) == -1) {
-		log_error("Listen failed");
-	}
-
-	char buf[255] = {0};
+	uint8_t buf[34] = {0};
 	while (1) {
 		struct sockaddr_storage client_addr;
 		unsigned int address_size = sizeof(client_addr);
@@ -91,21 +69,37 @@ int main(int argc, char **argv) {
 			log_error("Accept connection failed");
 		}
 
-		if (!fork()) {
-			close(listener_d);
-			const char *msg = "Server with protocol Tuk-tuk\r\nVersion 1.0\r\nTu-tuk!\r\n>";
-			if (send(connect_d, msg, strlen(msg), 0) == -1) {
-				log_error("Sending failed");
-			}
+		// network_receive(connect_d, buf, sizeof(buf));
 
-			read(connect_d, buf, sizeof(buf));
-			printf("Received: %s", buf);
-			close(connect_d);
-			exit(0);
+		read(connect_d, buf, sizeof(buf));
+		AddressData *data = create_address_data();
+		read_from_bytes(buf, data);
+
+		if (data -> crc == calculate_crc(buf, 30)) {
+			printf("CRC OK!!");
+		}
+
+		const char msg[3] = "200";
+		if (send(connect_d, &msg, strlen(msg), 0) == -1) {
+			log_error("Sending response failed");
 		}
 		close(connect_d);
+
+//		if (!fork()) {
+//			close(listener_d);
+//			const char *msg = "Server with protocol Tuk-tuk\r\nVersion 1.0\r\nTu-tuk!\r\n>";
+//			if (send(connect_d, msg, strlen(msg), 0) == -1) {
+//				log_error("Sending failed");
+//			}
+//
+//			read(connect_d, buf, sizeof(buf));
+//			printf("Received: %s", buf);
+//			close(connect_d);
+//			exit(0);
+//		}
+//		close(connect_d);
 	}
-	close(listener_d);
+	network_close_socket(&listener_d);
 
 	return 0;
 }
