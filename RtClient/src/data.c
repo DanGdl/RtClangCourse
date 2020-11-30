@@ -20,20 +20,6 @@ AddressData* create_address_data() {
 	return data;
 }
 
-
-void to_binary(unsigned k) {
-	while (k) {
-	    if (k & 1)
-	        printf("1");
-	    else
-	        printf("0");
-
-	    k >>= 1;
-	}
-	printf("\n");
-}
-
-
 void write_to_bytes(uint8_t buffer[], int length, AddressData *data) {
 	// write device_id
 	buffer[0] = data -> device_id >> 8;
@@ -51,25 +37,35 @@ void write_to_bytes(uint8_t buffer[], int length, AddressData *data) {
 	buffer[10] = data -> time >> 8;
 	buffer[11] = data -> time;
 
+	// processes
 	buffer[12] = data -> processes >> 24;
 	buffer[13] = data -> processes >> 16;
 	buffer[14] = data -> processes >> 8;
 	buffer[15] = data -> processes;
 
+	// ip
 	buffer[16] = data -> ip >> 24;
 	buffer[17] = data -> ip >> 16;
 	buffer[18] = data -> ip >> 8;
 	buffer[19] = data -> ip;
 
+	// mask
 	buffer[20] = data -> mask >> 24;
 	buffer[21] = data -> mask >> 16;
 	buffer[22] = data -> mask >> 8;
 	buffer[23] = data -> mask;
 
+	// mac
 	buffer[24] = data -> mac[0];
 	buffer[25] = data -> mac[1];
 	buffer[26] = data -> mac[2];
 	buffer[27] = data -> mac[3];
 	buffer[28] = data -> mac[4];
 	buffer[29] = data -> mac[5];
+
+	// crc
+	buffer[30] = data -> crc >> 24;
+	buffer[31] = data -> crc >> 16;
+	buffer[32] = data -> crc >> 8;
+	buffer[33] = data -> crc;
 }

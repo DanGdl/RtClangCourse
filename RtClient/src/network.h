@@ -24,8 +24,6 @@ void network_close_socket(int *socket_descriptor);
 
 int network_send(const int *socket_descriptor, uint8_t *message, const int length);
 
-int network_receive(const int *socket_descriptor, char *buf, int buffer_size);
-
 int get_str_data_for_interface(const char *name, char **network_data);
 
 int get_data_for_interface(const char *name, AddressData *network_data);
