@@ -71,22 +71,6 @@ int network_send(const int *socket_descriptor, uint8_t *message, const int lengt
 	return send(*socket_descriptor, message, length, 0);
 }
 
-int network_receive(const int *socket_descriptor, char *buf, int buffer_size) {
-	int total_received = 0;
-	int bytes_received = 0;
-	do {
-		bytes_received = recv(*socket_descriptor, buf, buffer_size, 0);
-		if (bytes_received == -1) {
-			return -1;
-		}
-		total_received += bytes_received;
-		buf[bytes_received] = '\0';
-		printf("%s", buf);
-	}
-	while (bytes_received);
-	return total_received;
-}
-
 int get_str_data_for_interface(const char *name, char **network_data) {
 	struct ifaddrs *addresses;
 	const int result = getifaddrs(&addresses);

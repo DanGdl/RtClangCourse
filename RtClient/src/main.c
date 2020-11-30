@@ -24,16 +24,6 @@ void clean(int socket_descriptor, AddressData *network_data) {
 }
 
 int main(int argc, char **argv) {
-//	char **network_data_str = (char**) malloc(3 * sizeof(char));
-//	network_data_str[0] = (char*) malloc(15 * sizeof(char));
-//	network_data_str[1] = (char*) malloc(15 * sizeof(char));
-//	network_data_str[2] = (char*) malloc(17 * sizeof(char));
-//	const int result1 = get_str_data_for_interface("lo", network_data_str); // eth0
-//	if (result1 == -1) {
-//		log_error("Can't get address data");
-//	}
-//	printf("Interface lo\t, Address: %s\t, Mask %s\tMAC: %s\n", network_data_str[0], network_data_str[1], network_data_str[2]);
-
 	srand(time(NULL));
 	const unsigned short device_id = ((unsigned short) rand()) % USHRT_MAX;
 
@@ -70,13 +60,11 @@ int main(int argc, char **argv) {
 				clean(0, network_data);
 				continue;
 			}
-			// printf("Interface lo\t, Address: %u\t, Mask %u\tMAC: %s\n", network_data -> ip, network_data -> mask, network_data -> mac);
 
 			uint8_t buf[34];
 			write_to_bytes(buf, 34, network_data);
-
-			// TODO: to array
 			network_data -> crc = calculate_crc(buf, 30);
+			write_to_bytes(buf, 34, network_data);
 
 			const int socket_descriptor = network_open_client_socket_by_ip("127.0.0.1", 1030);
 			if (socket_descriptor == -1) {
@@ -90,8 +78,6 @@ int main(int argc, char **argv) {
 			if (result == -1) {
 				log_error("Can't send");
 			}
-//			uint8_t rec[256];
-//			network_receive(socket_descriptor, rec, 255);
 
 			clean(socket_descriptor, network_data);
 		}
@@ -99,34 +85,3 @@ int main(int argc, char **argv) {
 
 	exit(0);
 }
-
-
-
-// #include <sys/wait.h>
-//			int fd[2];
-//			if (pipe(fd) == -1) {
-//				// error
-//			}
-//			pid_t pid = fork();
-//			if (pid == -1) {
-//			 // error
-//			}
-//			if (!pid) {
-//				dup2(fd[1], 1);
-//				close(fd[0]);
-//				if (execlp("/bin/sh", "ps -e | wc -l", NULL) == -1) {
-//					// error
-//				}
-//			}
-//			dup2(fd[0], 0);
-//			close(fd[1]);
-//			char line[255];
-//			while (fgets(line, 255, stdin)) {
-//				printf("%s", line);
-//			}
-//			int pid_status;
-//			if (waitpid(pid, &pid_status, 0) == -1) {
-//				// error
-//			}
-
-
