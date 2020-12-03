@@ -10,6 +10,7 @@
 #include <unictype.h>
 
 typedef struct AddressData {
+	long long id;
 	unsigned short device_id; // 2 Bytes
 	long int time; // 10 bytes
 	int processes; // 4 Bytes

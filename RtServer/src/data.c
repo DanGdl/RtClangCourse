@@ -10,12 +10,14 @@
 
 AddressData* create_address_data() {
 	AddressData *data = (AddressData*) malloc(sizeof(AddressData));
+	data -> id = -1;
 	data -> device_id = 0;
 	data -> time = 0;
 	data -> processes = 0;
 	data -> ip = 0;
 	data -> mask = 0;
-	data -> mac = (unsigned char*) malloc(6 * sizeof(char));
+	data -> mac = (unsigned char*) malloc(7 * sizeof(char));
+	data -> mac[6] = '\0';
 	data -> crc = 0;
 	return data;
 }
