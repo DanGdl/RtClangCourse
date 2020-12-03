@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include "data_dao.h"
 
 int listener_d = -1;
 
@@ -57,8 +58,13 @@ int main(int argc, char **argv) {
 		log_error("Fail to set interrupt handler");
 	}
 
+	create_table();
+
 	const int listener_d = network_open_server_socket(1030);
 	network_listen_server_socket(listener_d);
+
+	AddressData *datas = getAll();
+	free(datas);
 
 	uint8_t buf[34] = {0};
 	while (1) {
@@ -77,17 +83,20 @@ int main(int argc, char **argv) {
 
 		if (data -> crc == calculate_crc(buf, 30)) {
 			printf("CRC OK!!");
+			save(data);
+
+			const char msg[3] = "200";
+			if (send(connect_d, &msg, strlen(msg), 0) == -1) {
+				log_error("Sending response failed");
+			}
 		}
 
-		const char msg[3] = "200";
-		if (send(connect_d, &msg, strlen(msg), 0) == -1) {
-			log_error("Sending response failed");
-		}
+
 		close(connect_d);
 
 //		if (!fork()) {
 //			close(listener_d);
-//			const char *msg = "Server with protocol Tuk-tuk\r\nVersion 1.0\r\nTu-tuk!\r\n>";
+//			const char *msg = "LOL";
 //			if (send(connect_d, msg, strlen(msg), 0) == -1) {
 //				log_error("Sending failed");
 //			}
