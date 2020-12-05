@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-void log_error(const char *message) {
+void log_error_exit(const char *message) {
 	fprintf(stderr, "%s: %d", message, strerror(errno));
 	exit(1);
 }
