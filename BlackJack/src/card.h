@@ -11,7 +11,9 @@ typedef struct Card_t {
 } Card_t;
 
 
-Card_t* new_card(int rank, int suit);
+//Card_t* new_card(int rank, int suit);
+
+Card_t new_card(int rank, int suit);
 
 char* get_card_suit(const Card_t *card);
 

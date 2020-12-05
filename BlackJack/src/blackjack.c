@@ -19,6 +19,8 @@
 			}}
 
 
+Card_t deck[DECK_SIZE];
+bool has_card_n_deck[DECK_SIZE] = {true};
 
 int calculate_points(const LinkedList_t *list, bool is_dealer) {
 	int points = 0;
@@ -42,19 +44,15 @@ int calculate_points(const LinkedList_t *list, bool is_dealer) {
 	return points;
 }
 
-Card_t* get_random_card(Card_t **deck) {
-	do {
+Card_t* get_random_card() {
+	while(true) {
 		const int position = rand() % DECK_SIZE;
-		if (deck[position] == NULL) {
-			continue;
+		if (has_card_n_deck[position]) {
+			Card_t *card = &deck[position];
+			has_card_n_deck[position] = false;
+			return card;
 		}
-		Card_t *card = deck[position];
-		deck[position] = NULL;
-		if (card == NULL) {
-			log_error_exit("Random card is NULL!!");
-		}
-		return card;
-	} while(1);
+	}
 }
 
 void update_bet(unsigned int *bet, const unsigned int *cash) {
@@ -83,9 +81,9 @@ void update_bet(unsigned int *bet, const unsigned int *cash) {
 	(*bet) = (*bet) + bet_change;
 }
 
-void draw_to_hands(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
+void draw_to_hands(LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
 	while (true) {
-		Card_t *card = get_random_card(deck);
+		Card_t *card = get_random_card();
 		if (size(dealer_hand) < 2) {
 			add(dealer_hand, card);
 		} else if (size(player_hand) < 2) {
@@ -98,18 +96,18 @@ void draw_to_hands(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *playe
 	}
 }
 
-void return_cards_to_deck(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
+void return_cards_to_deck(LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
 	while (size(dealer_hand) > 0) {
 		Card_t *card = (Card_t*) remove_last(dealer_hand);
-		deck[card -> suit * 13 + card -> rank] = card;
+		has_card_n_deck[card -> suit * 13 + card -> rank] = true;
 	}
 	while (size(player_hand) > 0) {
 		Card_t *card = (Card_t*) remove_last(player_hand);
-		deck[card -> suit * 13 + card -> rank] = card;
+		has_card_n_deck[card -> suit * 13 + card -> rank] = true;
 	}
 }
 
-bool players_hit_or_stand(Card_t **deck, LinkedList_t *player_hand, int *player_points) {
+bool players_hit_or_stand(LinkedList_t *player_hand, int *player_points) {
 	while(true) {
 		char hit_or_stand;
 		while(true) {
@@ -126,7 +124,7 @@ bool players_hit_or_stand(Card_t **deck, LinkedList_t *player_hand, int *player_
 		}
 
 		if (hit_or_stand == 'H' || hit_or_stand == 'h') {
-			add(player_hand, get_random_card(deck));
+			add(player_hand, get_random_card());
 			(*player_points) = calculate_points(player_hand, false);
 
 			show_cards("player", player_hand);
@@ -141,7 +139,7 @@ bool players_hit_or_stand(Card_t **deck, LinkedList_t *player_hand, int *player_
 	return true;
 }
 
-void dealers_hits(Card_t **deck, LinkedList_t *dealer_hand, int *dealer_points, int player_points) {
+void dealers_hits(LinkedList_t *dealer_hand, int *dealer_points, int player_points) {
 	while(true) {
 		add(dealer_hand, get_random_card(deck));
 		(*dealer_points) = calculate_points(dealer_hand, true);
@@ -156,7 +154,8 @@ void dealers_hits(Card_t **deck, LinkedList_t *dealer_hand, int *dealer_points, 
 void play_black_jack() {
 	srand(time(NULL));
 
-	Card_t *deck[DECK_SIZE] = {NULL};
+	FILL_DECK(deck);
+	memset(has_card_n_deck, true, DECK_SIZE * sizeof(bool));
 	LinkedList_t *dealer_hand = create_list();
 	LinkedList_t *player_hand = create_list();
 
@@ -164,12 +163,7 @@ void play_black_jack() {
 	unsigned int bet = 0;
 	char to_continue;
 	do {
-		if (cash == INITIAL_CASH) {
-			FILL_DECK(deck);
-			// fill_deck(deck);
-		} else {
-			return_cards_to_deck(deck, dealer_hand, player_hand);
-		}
+		return_cards_to_deck(dealer_hand, player_hand);
 
 		show_status(&cash, &bet);
 		if (bet != 0) {
@@ -179,7 +173,7 @@ void play_black_jack() {
 		cash -= bet;
 		show_status(&cash, &bet);
 
-		draw_to_hands(deck, dealer_hand, player_hand);
+		draw_to_hands(dealer_hand, player_hand);
 
 		show_dealer_cards(dealer_hand);
 		show_cards("player", player_hand);
@@ -189,7 +183,7 @@ void play_black_jack() {
 			printf("BlackJack!\n");
 			cash += (int) (1.5 * bet);
 			bet = 0;
-		} else if (players_hit_or_stand(deck, player_hand, &player_points) && player_points > 21) {
+		} else if (players_hit_or_stand(player_hand, &player_points) && player_points > 21) {
 			printf("Bust!\n");
 			bet = 0;
 		} else {
@@ -201,7 +195,7 @@ void play_black_jack() {
 				printf("You lost!\n");
 				bet = 0;
 			} else {
-				dealers_hits(deck, dealer_hand, &dealer_points, player_points);
+				dealers_hits(dealer_hand, &dealer_points, player_points);
 
 				if (dealer_points > 21) {
 					printf("Dealer's bust!\n");
@@ -247,12 +241,5 @@ void play_black_jack() {
 	clear(player_hand);
 	free(player_hand);
 	player_hand = NULL;
-
-	for (int i = 0; i < DECK_SIZE; i++) {
-		if (deck[i] != NULL) {
-			free(deck[i]);
-			deck[i] = NULL;
-		}
-	}
 	printf("BYE!");
 }

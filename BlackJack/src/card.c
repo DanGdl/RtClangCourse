@@ -11,10 +11,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-Card_t* new_card(int rank, int suit) {
-	Card_t *c = (Card_t*) malloc(sizeof(Card_t));
-	c -> rank = rank;
-	c -> suit = suit;
+//Card_t* new_card(int rank, int suit) {
+//	Card_t *c = (Card_t*) malloc(sizeof(Card_t));
+//	c -> rank = rank;
+//	c -> suit = suit;
+//	return c;
+//}
+
+Card_t new_card(int rank, int suit) {
+	Card_t c = {rank, suit};
 	return c;
 }
 
@@ -80,10 +85,10 @@ int get_card_value(const Card_t *card) {
 		log_error_exit("Get value of Card that is NULL!!");
 		return 0;
 	}
-	else if (card -> rank >= 0 && card->rank < 11) {
+	else if (card -> rank >= 0 && card -> rank < 10) {
 		return card -> rank + 1;
 	}
-	else if (card -> rank >=11 && card -> rank < 13) {
+	else if (card -> rank >=10 && card -> rank < 13) {
 		return 10;
 	} else {
 		log_error_exit("Unknown rank");

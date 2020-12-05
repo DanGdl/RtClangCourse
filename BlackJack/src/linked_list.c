@@ -62,9 +62,6 @@ void clear(LinkedList_t *list) {
 		Node_t *tmp = node;
 		node = node -> previous;
 
-		if (tmp -> data != NULL) {
-		free(tmp -> data);
-		}
 		if (tmp != NULL) {
 			free(tmp);
 		}
