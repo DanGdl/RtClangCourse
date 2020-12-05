@@ -103,13 +103,11 @@ void draw_to_hands(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *playe
 void return_cards_to_deck(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
 	while (size(dealer_hand) > 0) {
 		Card_t *card = (Card_t*) remove_last(dealer_hand);
-		int idx = card -> suit * 13 + card -> rank;
-		deck[idx] = card;
+		deck[card -> suit * 13 + card -> rank] = card;
 	}
 	while (size(player_hand) > 0) {
 		Card_t *card = (Card_t*) remove_last(player_hand);
-		int idx = card -> suit * 13 + card -> rank;
-		deck[idx] = card;
+		deck[card -> suit * 13 + card -> rank] = card;
 	}
 }
 
