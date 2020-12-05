@@ -7,25 +7,28 @@
 #ifndef LINKED_LIST
 #define LINKED_LIST
 
-typedef struct Node {
-	struct Node *next;
-	struct Node *previous;
-	void *data;
-} Node;
+#include "card.h"
 
-typedef struct LinkedList {
-	Node *head;
-	Node *last;
-} LinkedList;
+typedef struct Node_t {
+	struct Node_t *next;
+	struct Node_t *previous;
+	Card_t *data;
+} Node_t;
 
-LinkedList* createList();
+typedef struct LinkedList_t {
+	Node_t *head;
+	Node_t *last;
+	unsigned int size;
+} LinkedList_t;
 
-int size(const LinkedList *list);
+LinkedList_t* create_list();
 
-void add(LinkedList *list, void *card);
+int size(const LinkedList_t *list);
 
-void clear(LinkedList *list);
+void add(LinkedList_t *list, Card_t *card);
 
-void* remove_last(LinkedList *list);
+void clear(LinkedList_t *list);
+
+Card_t* remove_last(LinkedList_t *list);
 
 #endif

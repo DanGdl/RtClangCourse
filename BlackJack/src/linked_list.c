@@ -8,69 +8,66 @@
 #include <stdlib.h>
 #include "errors.h"
 
-LinkedList* createList() {
-	LinkedList *l = (LinkedList*) malloc(sizeof(LinkedList));
+LinkedList_t* create_list() {
+	LinkedList_t *l = (LinkedList_t*) malloc(sizeof(LinkedList_t));
 	l -> head = NULL;
 	l -> last = NULL;
+	l -> size = 0;
 	return l;
 }
 
-int size(const LinkedList *list){
+int size(const LinkedList_t *list){
 	if (list == NULL) {
-		log_error("Size of List that is NULL!!");
+		log_error_exit("Size of List that is NULL!!");
 	}
-	int size = 0;
-	Node *node = list -> head;
-	while (node != NULL) {
-		size++;
-		node = node -> next;
-	}
-	return size;
+	return list -> size;
 }
 
-void add(LinkedList *list, void *card) {
+Node_t* create_node(Card_t *data, Node_t *previous) {
+	Node_t *node = (Node_t*) malloc(sizeof(Node_t));
+	node -> next = NULL;
+	node -> previous = previous;
+	node -> data = data;
+	return node;
+}
+
+void add(LinkedList_t *list, Card_t *card) {
 	if (list == NULL) {
-		log_error("Add to List that is NULL!!");
+		log_error_exit("Add to List that is NULL!!");
 	}
 	if (card == NULL) {
-		log_error("Adding card that is NULL!!");
+		log_error_exit("Adding card that is NULL!!");
 	}
 	if (list -> head == NULL) {
-		list -> head = (Node*) malloc(sizeof(Node));
-		list -> last = list -> head;
+		Node_t *node = create_node(card, NULL);
 
-		Node *node = list -> head;
-
-		node -> next = NULL;
-		node -> previous = NULL;
-		node -> data = card;
+		list -> head = node;
+		list -> last = node;
 	} else {
-		Node *node = list -> head;
-		while (node -> next != NULL) {
-			node = node -> next;
-		}
+		Node_t *node = create_node(card, list -> last);
 
-		node -> next = (Node*) malloc(sizeof(Node));
-		list -> last = node -> next;
-
-		node -> next -> next = NULL;
-		node -> next -> previous = node;
-		node -> next -> data = card;
+		list -> last -> next = node;
+		list -> last = node;
 	}
+	list -> size += 1;
 }
 
 
-void clear(LinkedList *list) {
+void clear(LinkedList_t *list) {
 	if (list == NULL) {
-		log_error("Clear List that is NULL!!");
+		log_error_exit("Clear List that is NULL!!");
 	}
-	Node *node = list -> last;
+	Node_t *node = list -> last;
 	while (node != NULL) {
-		Node *tmp = node;
+		Node_t *tmp = node;
 		node = node -> previous;
 
+		if (tmp -> data != NULL) {
 		free(tmp -> data);
-		free(tmp);
+		}
+		if (tmp != NULL) {
+			free(tmp);
+		}
 
 		if (node != NULL) {
 			node -> next = NULL;
@@ -79,13 +76,14 @@ void clear(LinkedList *list) {
 	}
 	list -> head = NULL;
 	list -> last = NULL;
+	list -> size = 0;
 }
 
-void* remove_last(LinkedList *list) {
+Card_t* remove_last(LinkedList_t *list) {
 	if (list == NULL) {
-		log_error("Remove last from List that is NULL!!");
+		log_error_exit("Remove last from List that is NULL!!");
 	}
-	Node * node = list -> last;
+	Node_t * node = list -> last;
 	void *card = node -> data;
 	list -> last = node -> previous;
 	if (list -> last == NULL) {
@@ -95,5 +93,7 @@ void* remove_last(LinkedList *list) {
 	}
 	node -> data = NULL;
 	free(node);
+	list -> size -= 1;
 	return card;
 }
+

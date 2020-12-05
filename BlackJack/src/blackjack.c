@@ -9,58 +9,61 @@
 #include "errors.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
-int calculate_points(const LinkedList *list) {
+int calculate_points(const LinkedList_t *list, bool is_dealer) {
 	int points = 0;
-	int has_ace = 0;
-	Node *node = list -> last;
+	int aces = 0;
+	Node_t *node = list -> last;
 	while (node != NULL) {
-		const Card *card = (Card*) node -> data;
+		const Card_t *card = (Card_t*) node -> data;
 		points += get_card_value(card);
 		if (is_ace(card)) {
-			has_ace = 1;
+			aces += 1;
 		}
 		node = node -> previous;
 	}
-	if (has_ace) {
-		points += 10;
-		if (points > 21) {
-			points -= 10;
+	if (aces > 0) {
+		if (is_dealer && aces == 2 && points + 20 <= 22) {
+			points += 22;
+		} else if (points + 10 <= 21) {
+			points += 10;
 		}
 	}
 	return points;
 }
 
-Card* get_random_card(Card **deck) {
+Card_t* get_random_card(Card_t **deck) {
 	do {
 		const int position = rand() % DECK_SIZE;
 		if (deck[position] == NULL) {
 			continue;
 		}
-		Card *card = deck[position];
+		Card_t *card = deck[position];
 		deck[position] = NULL;
 		if (card == NULL) {
-			log_error("Random card is NULL!!");
+			log_error_exit("Random card is NULL!!");
 		}
 		return card;
 	} while(1);
 }
 
-void fill_deck(Card **deck) {
+void fill_deck(Card_t **deck) {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 13; j++) {
 			const int idx = i * 13 + j;
 			if (deck[idx] == NULL) {
-				deck[idx] = newCard(j, i);
+				deck[idx] = new_card(j, i);
 			}
 		}
 	}
 }
 
-void update_bet(const char* message, int *bet, const int *cash) {
+void update_bet(unsigned int *bet, const unsigned int *cash) {
 	int bet_change = -1;
 	do {
-		show_message(message);
+		printf((*bet) == 0 ? "If you want to add bet, please enter amount (multiples of 10): "
+				: "If you want to add bet, please enter amount (multiples of 10) or 0: ");
 
 		const int entered = scanf("%d", &bet_change);
 		while(getchar() != '\n'){}
@@ -68,11 +71,13 @@ void update_bet(const char* message, int *bet, const int *cash) {
 		if (bet_change != -1 && bet_change % 10 == 0 && bet_change <= (*cash)) {
 			break;
 		} else if (entered == EOF) {
-			show_warning("Enter a number\n");
+			printf("Enter a number\n");
+		} else if (bet_change < 0) {
+			printf("Value can't be negative\n");
 		} else if (bet_change != -1 && bet_change % 10 != 0) {
-			show_warning("Value must be multiples of 10\n");
+			printf("Value must be multiples of 10\n");
 		} else if(bet_change > (*cash)) {
-			show_warning("You don't have enough cash\n");
+			printf("You don't have enough cash\n");
 		}
 
 		bet_change = -1;
@@ -80,9 +85,9 @@ void update_bet(const char* message, int *bet, const int *cash) {
 	(*bet) = (*bet) + bet_change;
 }
 
-void draw_to_hands(Card **deck, LinkedList *dealer_hand, LinkedList *player_hand) {
-	do {
-		Card *card = get_random_card(deck);
+void draw_to_hands(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
+	while (true) {
+		Card_t *card = get_random_card(deck);
 		if (size(dealer_hand) < 2) {
 			add(dealer_hand, card);
 		} else if (size(player_hand) < 2) {
@@ -92,48 +97,82 @@ void draw_to_hands(Card **deck, LinkedList *dealer_hand, LinkedList *player_hand
 		if (size(dealer_hand) == 2 && size(player_hand) == 2) {
 			break;
 		}
-	} while (1);
+	}
 }
 
-int get_last_card_position(Card **deck) {
+int get_last_card_position(Card_t **deck) {
 	int last_card_position = DECK_SIZE - 1;
 	for (; last_card_position >= 0 && deck[last_card_position] == NULL;
 			last_card_position -= 1) {}
 	return last_card_position;
 }
 
-void return_cards_to_deck(Card **deck, LinkedList *dealer_hand, LinkedList *player_hand) {
-	int last_card_position = get_last_card_position(deck);
-	for (int i = 0; i < DECK_SIZE && last_card_position > i; i++) {
-		if (deck[i] == NULL) {
-			deck[i] = deck[last_card_position];
-			deck[last_card_position] = NULL;
-
-			last_card_position = get_last_card_position(deck);
-		}
-	}
-	int first_empty_position = get_last_card_position(deck) + 1;
+void return_cards_to_deck(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
 	while (size(dealer_hand) > 0) {
-		Card *card = (Card*) remove_last(dealer_hand);
-		deck[first_empty_position] = card;
-		first_empty_position += 1;
+		Card_t *card = (Card_t*) remove_last(dealer_hand);
+		int idx = card -> suit * 13 + card -> rank;
+		deck[idx] = card;
 	}
 	while (size(player_hand) > 0) {
-		Card *card = (Card*) remove_last(player_hand);
-		deck[first_empty_position] = card;
-		first_empty_position += 1;
+		Card_t *card = (Card_t*) remove_last(player_hand);
+		int idx = card -> suit * 13 + card -> rank;
+		deck[idx] = card;
 	}
 }
+
+bool players_hit_or_stand(Card_t **deck, LinkedList_t *player_hand, int *player_points) {
+	while(true) {
+		char hit_or_stand;
+		while(true) {
+			printf("Please enter H to hit or S to stand: ");
+			scanf("%c", &hit_or_stand);
+			while(getchar() != '\n'){}
+
+			if (hit_or_stand == 'H' || hit_or_stand == 'h'
+					|| hit_or_stand == 'S' || hit_or_stand == 's') {
+				break;
+			} else {
+				printf("Invalid input. ");
+			}
+		}
+
+		if (hit_or_stand == 'H' || hit_or_stand == 'h') {
+			add(player_hand, get_random_card(deck));
+			(*player_points) = calculate_points(player_hand, false);
+
+			show_cards("player", player_hand);
+
+			if ((*player_points) > 21) {
+				break;
+			}
+		} else if (hit_or_stand == 'S' || hit_or_stand == 's') {
+			break;
+		}
+	}
+	return true;
+}
+
+void dealers_hits(Card_t **deck, LinkedList_t *dealer_hand, int *dealer_points, int player_points) {
+	while(true) {
+		add(dealer_hand, get_random_card(deck));
+		(*dealer_points) = calculate_points(dealer_hand, true);
+
+		if (player_points < (*dealer_points) || (*dealer_points) >= 17) {
+			break;
+		}
+	}
+}
+
 
 void play_black_jack() {
 	srand(time(NULL));
 
-	Card *deck[DECK_SIZE] = {NULL};
-	LinkedList *dealer_hand = createList();
-	LinkedList *player_hand = createList();
+	Card_t *deck[DECK_SIZE] = {NULL};
+	LinkedList_t *dealer_hand = create_list();
+	LinkedList_t *player_hand = create_list();
 
-	int cash = INITIAL_CASH;
-	int bet = 0;
+	unsigned int cash = INITIAL_CASH;
+	unsigned int bet = 0;
 	char to_continue;
 	do {
 		if (cash == INITIAL_CASH) {
@@ -146,82 +185,46 @@ void play_black_jack() {
 		if (bet != 0) {
 			cash += bet;
 		}
-		update_bet(request_bet_update(&bet), &bet, &cash);
+		update_bet(&bet, &cash);
 		cash -= bet;
 		show_status(&cash, &bet);
 
 		draw_to_hands(deck, dealer_hand, player_hand);
 
 		show_dealer_cards(dealer_hand);
-		show_player_cards(player_hand);
+		show_cards("player", player_hand);
 
-		int player_points = calculate_points(player_hand);
+		int player_points = calculate_points(player_hand, false);
 		if (player_points == 21) {
-			show_message("BlackJack!\n");
+			printf("BlackJack!\n");
 			cash += (int) (1.5 * bet);
 			bet = 0;
+		} else if (players_hit_or_stand(deck, player_hand, &player_points) && player_points > 21) {
+			printf("Bust!\n");
+			bet = 0;
 		} else {
-			// hit or stand
-			int is_burst = 0;
-			do {
-				char bet_or_stand;
-				do {
-					show_message("Please enter H to hit or S to stand: ");
-					scanf("%c", &bet_or_stand);
-					while(getchar() != '\n'){}
+			int dealer_points = calculate_points(dealer_hand, true);
+			if (dealer_points == 22) {
+				printf("Dealer wins with 2 aces!\n");
+			}
+			else if (player_points < dealer_points) {
+				printf("You lost!\n");
+				bet = 0;
+			} else {
+				dealers_hits(deck, dealer_hand, &dealer_points, player_points);
 
-					if (bet_or_stand == 'H' || bet_or_stand == 'h'
-							|| bet_or_stand == 'S' || bet_or_stand == 's') {
-						break;
-					} else {
-						show_warning("Invalid input. ");
-					}
-				} while(1);
-
-				if (bet_or_stand == 'H' || bet_or_stand == 'h') {
-					add(player_hand, get_random_card(deck));
-					player_points = calculate_points(player_hand);
-
-					show_cards("player", player_hand);
-
-					if (player_points > 21) {
-						show_message("Bust!\n");
-						bet = 0;
-						is_burst = 1;
-						break;
-					}
-				} else if (bet_or_stand == 'S' || bet_or_stand == 's') {
-					break;
-				}
-			} while(1);
-
-			// dealer
-			if (is_burst == 0) {
-				int dealer_points = calculate_points(dealer_hand);
-				if (player_points < dealer_points) {
-					show_message("You lost!\n");
+				if (dealer_points > 21) {
+					printf("Dealer's bust!\n");
+					cash += 2 * bet;
 					bet = 0;
-				} else {
-					do {
-						add(dealer_hand, get_random_card(deck));
-						dealer_points = calculate_points(dealer_hand);
-
-						if (player_points < dealer_points || dealer_points >= 17) {
-							if (dealer_points > 21) {
-								show_message("Dealer's bust!\n");
-								cash += 2 * bet;
-								bet = 0;
-								break;
-							} else if (dealer_points == 21 || (dealer_points < 21 && dealer_points == player_points)) {
-								show_message("Tie\n");
-								break;
-							} else if (dealer_points < 21 && dealer_points > player_points) {
-								show_message("Dealer wins!\n");
-								bet = 0;
-								break;
-							}
-						}
-					} while(1);
+					break;
+				} else if (dealer_points == 21 || (dealer_points < 21 && dealer_points == player_points)) {
+					printf("Tie\n");
+					break;
+				} else if (dealer_points < 21 && dealer_points > player_points) {
+					printf("Dealer wins!\n");
+					bet = 0;
+					break;
 				}
 			}
 		}
@@ -231,11 +234,11 @@ void play_black_jack() {
 		}
 
 		if (cash < 10) {
-			show_message("You are out of cash to bet. Game over!\n");
+			printf("You are out of cash to bet. Game over!\n");
 		}
 		
-		do {
-			show_message("Play another round? [Y/N]: ");
+		while(true) {
+			printf("Play another round? [Y/N]: ");
 			scanf("%c", &to_continue);
 			while(getchar() != '\n'){}
 
@@ -243,10 +246,10 @@ void play_black_jack() {
 					|| to_continue == 'N' || to_continue == 'n') {
 				break;
 			} else {
-				show_warning("Invalid input. ");
+				printf("Invalid input. ");
 			}
 
-		} while(1);
+		}
 
 	} while(to_continue == 'Y' || to_continue == 'y');
 
@@ -258,11 +261,11 @@ void play_black_jack() {
 	free(player_hand);
 	player_hand = NULL;
 
-	for (int i = 0; i < DECK_SIZE; i++) {
-		if (deck[i] != NULL) {
-			free(deck[i]);
-			deck[i] = NULL;
-		}
-	}
+//	for (int i = 0; i < DECK_SIZE; i++) {
+//		if (deck[i] != NULL) {
+//			free(deck[i]);
+//			deck[i] = NULL;
+//		}
+//	}
 	printf("BYE!");
 }
