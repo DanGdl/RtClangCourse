@@ -100,13 +100,6 @@ void draw_to_hands(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *playe
 	}
 }
 
-int get_last_card_position(Card_t **deck) {
-	int last_card_position = DECK_SIZE - 1;
-	for (; last_card_position >= 0 && deck[last_card_position] == NULL;
-			last_card_position -= 1) {}
-	return last_card_position;
-}
-
 void return_cards_to_deck(Card_t **deck, LinkedList_t *dealer_hand, LinkedList_t *player_hand) {
 	while (size(dealer_hand) > 0) {
 		Card_t *card = (Card_t*) remove_last(dealer_hand);
