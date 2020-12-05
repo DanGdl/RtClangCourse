@@ -261,11 +261,11 @@ void play_black_jack() {
 	free(player_hand);
 	player_hand = NULL;
 
-//	for (int i = 0; i < DECK_SIZE; i++) {
-//		if (deck[i] != NULL) {
-//			free(deck[i]);
-//			deck[i] = NULL;
-//		}
-//	}
+	for (int i = 0; i < DECK_SIZE; i++) {
+		if (deck[i] != NULL) {
+			free(deck[i]);
+			deck[i] = NULL;
+		}
+	}
 	printf("BYE!");
 }
