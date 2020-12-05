@@ -11,6 +11,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define FILL_DECK(deck) \
+		for (int i = 0; i < 4; i++) {\
+			int idx =i * 13;\
+			for (int j = 0; j < 13; j++) {\
+				deck[idx + j] = new_card(j, i);\
+			}}
+
+
+
 int calculate_points(const LinkedList_t *list, bool is_dealer) {
 	int points = 0;
 	int aces = 0;
@@ -46,17 +55,6 @@ Card_t* get_random_card(Card_t **deck) {
 		}
 		return card;
 	} while(1);
-}
-
-void fill_deck(Card_t **deck) {
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 13; j++) {
-			const int idx = i * 13 + j;
-			if (deck[idx] == NULL) {
-				deck[idx] = new_card(j, i);
-			}
-		}
-	}
 }
 
 void update_bet(unsigned int *bet, const unsigned int *cash) {
@@ -167,7 +165,8 @@ void play_black_jack() {
 	char to_continue;
 	do {
 		if (cash == INITIAL_CASH) {
-			fill_deck(deck);
+			FILL_DECK(deck);
+			// fill_deck(deck);
 		} else {
 			return_cards_to_deck(deck, dealer_hand, player_hand);
 		}
@@ -208,14 +207,11 @@ void play_black_jack() {
 					printf("Dealer's bust!\n");
 					cash += 2 * bet;
 					bet = 0;
-					break;
 				} else if (dealer_points == 21 || (dealer_points < 21 && dealer_points == player_points)) {
 					printf("Tie\n");
-					break;
 				} else if (dealer_points < 21 && dealer_points > player_points) {
 					printf("Dealer wins!\n");
 					bet = 0;
-					break;
 				}
 			}
 		}
