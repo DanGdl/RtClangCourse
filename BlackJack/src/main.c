@@ -6,7 +6,7 @@
  */
 #include "blackjack.h"
 
-int main(int argc, char **argv) {
+int main() {
 	play_black_jack();
 }
 

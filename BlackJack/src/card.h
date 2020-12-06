@@ -5,29 +5,24 @@ enum Suits {
 	SPADES, DIAMONDS, HEARTS, CLUBS
 };
 
-typedef struct Card {
+typedef struct Card_t {
 	int rank;
 	int suit;
-} Card;
+} Card_t;
 
-void generateCard(Card *card, int ranks, int suits);
 
-Card newRandomCard(int ranks, int suits);
+//Card_t* new_card(int rank, int suit);
 
-Card* newCard(int rank, int suit);
+Card_t new_card(int rank, int suit);
 
-int compareCard(Card *card1, Card *card2);
+char* get_card_suit(const Card_t *card);
 
-char* get_card_suit(const Card *card);
+char* get_card_rank_name(const Card_t *card);
 
-char* get_card_rank_name(const Card *card);
+int get_card_value(const Card_t *card);
 
-int get_card_value(const Card *card);
+void print_card(const Card_t *card);
 
-Card copyCard(Card *card);
-
-void print_card(Card *card);
-
-int is_ace(const Card *card);
+int is_ace(const Card_t *card);
 
 #endif
