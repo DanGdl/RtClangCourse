@@ -16,19 +16,7 @@ typedef uint32_t crc;
 #define POLYNOMIAL 0xD8  /* 11011 followed by 0's */
 
 
-int network_open_client_socket_by_ip(const char *ip, const int port);
-
-int network_open_client_socket(const char *address, const char *port);
-
 void network_close_socket(const int *socket_descriptor);
-
-int network_send(const int *socket_descriptor, uint8_t *message, const int length);
-
-int network_receive(const int *socket_descriptor, uint8_t *buf, int buffer_size);
-
-int get_str_data_for_interface(const char *name, char **network_data);
-
-int get_data_for_interface(const char *name, AddressData *network_data);
 
 crc calculate_crc(uint8_t const message[], const int nBytes);
 

@@ -23,8 +23,6 @@ typedef struct AddressData {
 
 AddressData* create_address_data();
 
-void write_to_bytes(uint8_t buffer[], AddressData *data);
-
 void read_from_bytes(uint8_t buffer[], AddressData *data);
 
 #endif
