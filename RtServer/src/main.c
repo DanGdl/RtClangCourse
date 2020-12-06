@@ -108,6 +108,20 @@ int main(int argc, char **argv) {
 
 		// close connection
 		close(connect_d);
+
+//		if (!fork()) {
+//			close(listener_d);
+//			const char *msg = "Server with protocol Tuk-tuk\r\nVersion 1.0\r\nTu-tuk!\r\n>";
+//			if (send(connect_d, msg, strlen(msg), 0) == -1) {
+//				log_error("Sending failed");
+//			}
+//
+//			read(connect_d, buf, sizeof(buf));
+//			printf("Received: %s", buf);
+//			close(connect_d);
+//			exit(0);
+//		}
+//		close(connect_d);
 	}
 	// close socket
 	network_close_socket(&listener_d);

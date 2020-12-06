@@ -1,4 +1,4 @@
-/*
+/**
  * network.c
  *
  *  Created on: Nov 28, 2020
@@ -22,18 +22,28 @@
 #include "errors.h"
 
 
-/**
- * closes socket
- */
 void network_close_socket(const int *socket_descriptor) {
 	if (socket_descriptor != NULL && *socket_descriptor != 0) {
 		close(*socket_descriptor);
 	}
 }
 
-/**
- * calculates crc for buffer array
- */
+int network_receive(const int *socket_descriptor, uint8_t *buf, int buffer_size) {
+	int total_received = 0;
+	int bytes_received = 0;
+	do {
+		bytes_received = recv(*socket_descriptor, buf, buffer_size, 0);
+		if (bytes_received == -1) {
+			return -1;
+		}
+		total_received += bytes_received;
+		buf[bytes_received] = '\0';
+		printf("%s", buf);
+	}
+	while (bytes_received);
+	return total_received;
+}
+
 crc calculate_crc(uint8_t const message[], int nBytes) {
 	crc  remainder = 0;
 
@@ -59,9 +69,6 @@ crc calculate_crc(uint8_t const message[], int nBytes) {
 	return remainder;
 }
 
-/**
- * open sever socket
- */
 int network_open_server_socket(int port) {
 	const int listener_d = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_d == -1) {
@@ -87,9 +94,6 @@ int network_open_server_socket(int port) {
 	return listener_d;
 }
 
-/**
- * listen connections to socket
- */
 void network_listen_server_socket(int socket_descriptor) {
 	if (listen(socket_descriptor, 10) == -1) {
 		log_error_exit("Listen failed");
