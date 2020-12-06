@@ -16,9 +16,16 @@
 #include <unistd.h>
 #include <signal.h>
 #include "data_dao.h"
+#include <stdbool.h>
 
-int listener_d = -1;
 
+#define CONNECTION_FAILED -1
+
+int listener_d;
+
+/**
+ * read data from socket connection
+ */
 int read_in(const int socket, char* buf, const int len) {
 	char *s = buf;
 	int slen = len;
@@ -38,6 +45,9 @@ int read_in(const int socket, char* buf, const int len) {
 	return len - slen;
 }
 
+/**
+ * close server's socket
+ */
 void handle_shutdown(int sig) {
 	if (listener_d) {
 		close(listener_d);
@@ -45,6 +55,9 @@ void handle_shutdown(int sig) {
 	exit(0);
 }
 
+/**
+ * setup listener to receive process interruption
+ */
 int catch_signal(int sig, void (*handler)(int)) {
 	struct sigaction action;
 	action.sa_handler = handler;
@@ -54,60 +67,49 @@ int catch_signal(int sig, void (*handler)(int)) {
 }
 
 int main(int argc, char **argv) {
+	// setup listener to receive process interruption
 	if (catch_signal(SIGINT, handle_shutdown) == -1) {
 		log_error("Fail to set interrupt handler");
 	}
 
+	// create table in DB
 	create_table();
 
-	const int listener_d = network_open_server_socket(1030);
+	listener_d = network_open_server_socket(1030);
 	network_listen_server_socket(listener_d);
 
-	AddressData *datas = getAll();
-	free(datas);
+	// AddressData *datas = getAll();
+	// free(datas);
 
 	uint8_t buf[34] = {0};
-	while (1) {
+	while (true) {
+		// receive connection
 		struct sockaddr_storage client_addr;
 		unsigned int address_size = sizeof(client_addr);
 		int connect_d = accept(listener_d, (struct sockaddr*) &client_addr, &address_size);
-		if (connect_d == -1) {
+		if (connect_d == CONNECTION_FAILED) {
 			log_error("Accept connection failed");
 		}
-
-		// network_receive(connect_d, buf, sizeof(buf));
 
 		read(connect_d, buf, sizeof(buf));
 		AddressData *data = create_address_data();
 		read_from_bytes(buf, data);
 
 		if (data -> crc == calculate_crc(buf, 30)) {
-			printf("CRC OK!!");
 			save(data);
 
-			const char msg[3] = "200";
-			if (send(connect_d, &msg, strlen(msg), 0) == -1) {
-				log_error("Sending response failed");
-			}
+//			const char msg[3] = "200";
+//			if (send(connect_d, &msg, strlen(msg), 0) == -1) {
+//				log_error("Sending response failed");
+//			}
+		} else {
+			printf("CRC NOT OK!!");
 		}
 
-
+		// close connection
 		close(connect_d);
-
-//		if (!fork()) {
-//			close(listener_d);
-//			const char *msg = "LOL";
-//			if (send(connect_d, msg, strlen(msg), 0) == -1) {
-//				log_error("Sending failed");
-//			}
-//
-//			read(connect_d, buf, sizeof(buf));
-//			printf("Received: %s", buf);
-//			close(connect_d);
-//			exit(0);
-//		}
-//		close(connect_d);
 	}
+	// close socket
 	network_close_socket(&listener_d);
 
 	return 0;

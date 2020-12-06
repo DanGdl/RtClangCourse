@@ -13,6 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * creates table to save data in DB
+ */
 void create_table() {
 	PGconn *conn = PQconnectdb("user=postgres password=123456 dbname=postgres");
 
@@ -40,6 +43,9 @@ void create_table() {
 	PQfinish(conn);
 }
 
+/**
+ * saves data in DB
+ */
 void save(AddressData *data) {
 	// transaction?
 	PGconn *conn = PQconnectdb("user=postgres password=123456 dbname=postgres");
