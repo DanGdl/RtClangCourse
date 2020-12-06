@@ -57,7 +57,7 @@ Card_t* get_random_card() {
 
 void update_bet(unsigned int *bet, const unsigned int *cash) {
 	int bet_change = -1;
-	do {
+	while (true) {
 		printf((*bet) == 0 ? "If you want to add bet, please enter amount (multiples of 10): "
 				: "If you want to add bet, please enter amount (multiples of 10) or 0: ");
 
@@ -77,7 +77,7 @@ void update_bet(unsigned int *bet, const unsigned int *cash) {
 		}
 
 		bet_change = -1;
-	} while (1);
+	}
 	(*bet) = (*bet) + bet_change;
 }
 
