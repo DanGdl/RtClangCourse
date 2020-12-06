@@ -8,9 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 void log_error(const char *message) {
-	fprintf(stderr, "%s: %d", message, strerror(errno));
+	fprintf(stderr, "%s: %s", message, strerror(errno));
 }
 
 void log_error_exit(const char *message) {
