@@ -14,7 +14,7 @@ void show_status(const unsigned int *cash, const unsigned int *bet){
 
 void show_dealer_cards(const LinkedList_t *list) {
 	const Card_t* first_card = (Card_t*) list -> head -> data;
-	printf("Dealer's cards: %s %s, ????????\n", get_card_suit(first_card), get_card_rank_name(first_card));
+	printf("Dealer's cards: \n%s of %s,\n ????????\n", get_card_rank_name(first_card), get_card_suit(first_card));
 }
 
 void show_cards(const char *hand, const LinkedList_t *list) {
@@ -26,7 +26,7 @@ void show_cards(const char *hand, const LinkedList_t *list) {
 			printf(", ");
 		}
 		const Card_t* card = (Card_t*) node -> data;
-		printf("%s %s", get_card_suit(card), get_card_rank_name(card));
+		printf("\n%s of %s", get_card_rank_name(card), get_card_suit(card));
 		node = node -> next;
 		counter++;
 	}

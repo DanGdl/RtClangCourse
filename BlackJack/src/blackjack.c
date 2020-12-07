@@ -35,9 +35,10 @@ int calculate_points(const LinkedList_t *list, bool is_dealer) {
 		node = node -> previous;
 	}
 	if (aces > 0) {
-		if (is_dealer && aces == 2 && points + 20 <= 22) {
-			points += 22;
-		} else if (points + 10 <= 21) {
+		// if (is_dealer && aces == 2 && points + 20 <= 22) {
+		// 	points += 22;
+		// } else
+		if (points + 10 <= 21) {
 			points += 10;
 		}
 	}
@@ -58,13 +59,15 @@ Card_t* get_random_card() {
 void update_bet(unsigned int *bet, const unsigned int *cash) {
 	int bet_change = -1;
 	while (true) {
-		printf((*bet) == 0 ? "If you want to add bet, please enter amount (multiples of 10): "
-				: "If you want to add bet, please enter amount (multiples of 10) or 0: ");
+		printf("If you want to add bet, please enter amount (multiples of 10)%s: ", (*bet) == 0 ? "" : " or 0");
 
 		const int entered = scanf("%d", &bet_change);
 		while(getchar() != '\n'){}
 
-		if (bet_change != -1 && bet_change % 10 == 0 && bet_change <= (*cash)) {
+
+		if (((*bet) == 0 && bet_change == 0)) {
+			printf("Value can't be zero\n");
+		} else if (bet_change != -1 && bet_change % 10 == 0 && bet_change <= (*cash)) {
 			break;
 		} else if (entered == EOF) {
 			printf("Enter a number\n");
@@ -113,17 +116,17 @@ bool players_hit_or_stand(LinkedList_t *player_hand, int *player_points) {
 		while(true) {
 			printf("Please enter H to hit or S to stand: ");
 			scanf("%c", &hit_or_stand);
+			hit_or_stand = toupper(hit_or_stand);
 			while(getchar() != '\n'){}
 
-			if (hit_or_stand == 'H' || hit_or_stand == 'h'
-					|| hit_or_stand == 'S' || hit_or_stand == 's') {
+			if (hit_or_stand == 'H'|| hit_or_stand == 'S') {
 				break;
 			} else {
 				printf("Invalid input. ");
 			}
 		}
 
-		if (hit_or_stand == 'H' || hit_or_stand == 'h') {
+		if (hit_or_stand == 'H') {
 			add(player_hand, get_random_card());
 			(*player_points) = calculate_points(player_hand, false);
 
@@ -132,12 +135,13 @@ bool players_hit_or_stand(LinkedList_t *player_hand, int *player_points) {
 			if ((*player_points) > 21) {
 				break;
 			}
-		} else if (hit_or_stand == 'S' || hit_or_stand == 's') {
+		} else if (hit_or_stand == 'S') {
 			break;
 		}
 	}
 	return true;
 }
+
 
 void dealers_hits(LinkedList_t *dealer_hand, int *dealer_points, int player_points) {
 	while(true) {
@@ -188,10 +192,11 @@ void play_black_jack() {
 			bet = 0;
 		} else {
 			int dealer_points = calculate_points(dealer_hand, true);
-			if (dealer_points == 22) {
-				printf("Dealer wins with 2 aces!\n");
-			}
-			else if (player_points < dealer_points) {
+			// if (dealer_points == 22) {
+			// 	printf("Dealer wins with 2 aces!\n");
+			// }
+			// else
+			if (player_points < dealer_points) {
 				printf("You lost!\n");
 				bet = 0;
 			} else {
@@ -201,7 +206,10 @@ void play_black_jack() {
 					printf("Dealer's bust!\n");
 					cash += 2 * bet;
 					bet = 0;
-				} else if (dealer_points == 21 || (dealer_points < 21 && dealer_points == player_points)) {
+				} else if (dealer_points == 21) {
+					printf("Dealer's BlackJack!\n");
+					bet = 0;
+				} else if ((dealer_points < 21 && dealer_points == player_points)) {
 					printf("Tie\n");
 				} else if (dealer_points < 21 && dealer_points > player_points) {
 					printf("Dealer wins!\n");
@@ -216,15 +224,16 @@ void play_black_jack() {
 
 		if (cash < 10) {
 			printf("You are out of cash to bet. Game over!\n");
+			break;
 		}
 		
 		while(true) {
 			printf("Play another round? [Y/N]: ");
 			scanf("%c", &to_continue);
+			to_continue = toupper(to_continue);
 			while(getchar() != '\n'){}
 
-			if (to_continue == 'Y' || to_continue == 'y'
-					|| to_continue == 'N' || to_continue == 'n') {
+			if (to_continue == 'Y' || to_continue == 'N') {
 				break;
 			} else {
 				printf("Invalid input. ");
@@ -232,7 +241,7 @@ void play_black_jack() {
 
 		}
 
-	} while(to_continue == 'Y' || to_continue == 'y');
+	} while(to_continue == 'Y');
 
 	clear(dealer_hand);
 	free(dealer_hand);
