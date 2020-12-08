@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 #include <limits.h>
 
@@ -27,61 +28,66 @@ int main(int argc, char **argv) {
 	srand(time(NULL));
 	const unsigned short device_id = ((unsigned short) rand()) % USHRT_MAX;
 
-	do {
+	while(1) {
 		show_message("Please enter 'S' or 's' to send data. Enter 'Q' or 'q' to exit. ");
 
 		char c;
 		const int entered = scanf("%c", &c);
+		c = toupper(c);
 		while(getchar() != '\n'){}
 
-		if ((c == 'Q' || c == 'q') && entered == 1) {
-			break;
-		} else if ((c == 'S' || c == 's') && entered == 1) {
-			AddressData *network_data = create_address_data();
-			network_data -> device_id = device_id;
-			network_data -> time = time(NULL);
-			FILE *pp = popen("ps -e | wc -l", "r");
-			if (pp != NULL) {
-				while (1) {
-					char *line;
-					char buf[10];
-					line = fgets(buf, sizeof buf, pp);
-					if (line == NULL) {
-						break;
+		if (entered == 1) {
+			if (c == 'Q') {
+				break;
+			} else if (c == 'S') {
+				AddressData *network_data = create_address_data();
+				network_data -> device_id = device_id;
+				network_data -> time = time(NULL);
+				FILE *pp = popen("ps -e | wc -l", "r");
+				if (pp != NULL) {
+					while (1) {
+						char *line;
+						char buf[10];
+						line = fgets(buf, sizeof buf, pp);
+						if (line == NULL) {
+							break;
+						}
+						network_data -> processes = atoi(line);
 					}
-					network_data -> processes = atoi(line);
+					pclose(pp);
 				}
-				pclose(pp);
-			}
 
-			const int result2 = get_data_for_interface("lo", network_data); // eth0
-			if (result2 == -1) {
-				log_error("Can't get address data");
-				clean(0, network_data);
-				continue;
-			}
+				const int result2 = get_data_for_interface("lo", network_data); // eth0
+				if (result2 == -1) {
+					log_error("Can't get address data");
+					clean(0, network_data);
+					continue;
+				}
 
-			uint8_t buf[34];
-			write_to_bytes(buf, 34, network_data);
-			network_data -> crc = calculate_crc(buf, 30);
-			write_to_bytes(buf, 34, network_data);
+				uint8_t buf[34];
+				write_to_bytes(buf, 34, network_data);
+				network_data -> crc = calculate_crc(buf, 30);
+				write_to_bytes(buf, 34, network_data);
 
-			const int socket_descriptor = network_open_client_socket_by_ip("127.0.0.1", 1030);
-			if (socket_descriptor == -1) {
-				log_error("Can't connect");
+				const int socket_descriptor = network_open_client_socket_by_ip("127.0.0.1", 1030);
+				if (socket_descriptor == -1) {
+					log_error("Can't connect");
+
+					clean(socket_descriptor, network_data);
+					continue;
+				}
+
+				const int result = network_send(&socket_descriptor, buf, 34);
+				if (result == -1) {
+					log_error("Can't send");
+				}
 
 				clean(socket_descriptor, network_data);
-				continue;
 			}
-
-			const int result = network_send(&socket_descriptor, buf, 34);
-			if (result == -1) {
-				log_error("Can't send");
-			}
-
-			clean(socket_descriptor, network_data);
+		} else {
+			printf("Invalid command\n");
+			continue;
 		}
-	} while (1);
-
+	}
 	exit(0);
 }
