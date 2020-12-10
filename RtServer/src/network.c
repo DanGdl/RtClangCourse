@@ -70,7 +70,7 @@ crc calculate_crc(uint8_t const message[], int nBytes) {
 }
 
 int network_open_server_socket(int port) {
-	const int listener_d = socket(PF_INET, SOCK_STREAM, 0);
+	const int listener_d = socket(PF_INET, SOCK_DGRAM, 0); // SOCK_STREAM
 	if (listener_d == -1) {
 		log_error_exit("Create socket failed");
 	}
