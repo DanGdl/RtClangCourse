@@ -78,10 +78,9 @@ int main(int argc, char **argv) {
 	listener_d = network_open_server_socket(1030);
 	network_listen_server_socket(listener_d);
 
-	// AddressData *datas = getAll();
-	// free(datas);
-
-	uint8_t buf[34] = {0};
+	uint size = sizeof(data_address_data_t);
+	uint8_t buf[size];
+	memset(buf, 0, size);
 	while (true) {
 		// receive connection
 		struct sockaddr_storage client_addr;
@@ -91,37 +90,19 @@ int main(int argc, char **argv) {
 			log_error("Accept connection failed");
 		}
 
-		read(connect_d, buf, sizeof(buf));
+		read(connect_d, buf, size);
 		data_address_data_t *data = create_address_data();
-		memcpy(data + get_crc_size(data), &buf, 34);
+		memcpy(data, &buf, size);
 
-		if (data -> crc == calculate_crc(buf, 30)) {
+		uint crc_size = get_crc_size(data);
+		if (data -> crc == calculate_crc(buf + crc_size, size - crc_size - sizeof(data -> id))) {
 			save(data);
-
-//			const char msg[3] = "200";
-//			if (send(connect_d, &msg, strlen(msg), 0) == -1) {
-//				log_error("Sending response failed");
-//			}
 		} else {
 			printf("CRC NOT OK!!");
 		}
 
 		// close connection
 		close(connect_d);
-
-//		if (!fork()) {
-//			close(listener_d);
-//			const char *msg = "Server with protocol Tuk-tuk\r\nVersion 1.0\r\nTu-tuk!\r\n>";
-//			if (send(connect_d, msg, strlen(msg), 0) == -1) {
-//				log_error("Sending failed");
-//			}
-//
-//			read(connect_d, buf, sizeof(buf));
-//			printf("Received: %s", buf);
-//			close(connect_d);
-//			exit(0);
-//		}
-//		close(connect_d);
 	}
 	// close socket
 	network_close_socket(&listener_d);
