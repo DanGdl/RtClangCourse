@@ -17,7 +17,7 @@
 #include "renderer.h"
 
 
-void clean(int socket_descriptor, AddressData *network_data) {
+void clean(int socket_descriptor, data_address_data_t *network_data) {
 	if (socket_descriptor != 0) {
 		network_close_socket(&socket_descriptor);
 	}
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 	srand(time(NULL));
 	const unsigned short device_id = ((unsigned short) rand()) % USHRT_MAX;
 
-	while(1) {
+	while(true) {
 		show_message("Please enter 'S' or 's' to send data. Enter 'Q' or 'q' to exit. ");
 
 		char c;
@@ -40,12 +40,12 @@ int main(int argc, char **argv) {
 			if (c == 'Q') {
 				break;
 			} else if (c == 'S') {
-				AddressData *network_data = create_address_data();
+				data_address_data_t *network_data = create_address_data();
 				network_data -> device_id = device_id;
 				network_data -> time = time(NULL);
 				FILE *pp = popen("ps -e | wc -l", "r");
 				if (pp != NULL) {
-					while (1) {
+					while (true) {
 						char *line;
 						char buf[10];
 						line = fgets(buf, sizeof buf, pp);
@@ -64,10 +64,12 @@ int main(int argc, char **argv) {
 					continue;
 				}
 
-				uint8_t buf[34];
-				write_to_bytes(buf, 34, network_data);
-				network_data -> crc = calculate_crc(buf, 30);
-				write_to_bytes(buf, 34, network_data);
+				uint size = sizeof(data_address_data_t);
+				uint8_t buf[size];
+				memset(&buf, 0, size);
+				memcpy(&buf, network_data, size);
+				network_data -> crc = calculate_crc(buf, size);
+				memcpy(&buf, network_data, size);
 
 				const int socket_descriptor = network_open_client_socket_by_ip("127.0.0.1", 1030);
 				if (socket_descriptor == -1) {
