@@ -22,8 +22,8 @@
 #include "errors.h"
 
 int network_open_client_socket_by_ip(const char *ip, const int port) {
-	int socket_descriptor = socket(PF_INET, SOCK_STREAM, 0);
-	if (socket_descriptor == -1) {
+	int socket_descriptor = socket(PF_INET, SOCK_DGRAM, 0); // SOCK_STREAM
+	if (socket_descriptor <= 0) {
 		log_error("Create socket failed");
 	}
 
@@ -33,7 +33,7 @@ int network_open_client_socket_by_ip(const char *ip, const int port) {
 	si.sin_addr.s_addr = inet_addr(ip);
 	si.sin_port = htons(port);
 	const int c = connect(socket_descriptor, (struct sockaddr*) &si, sizeof(si));
-	if (c == -1) {
+	if (c != 0) {
 		return -1;
 	}
 	return socket_descriptor;
@@ -107,7 +107,7 @@ int get_str_data_for_interface(const char *name, char **network_data) {
 	return 0;
 }
 
-int get_data_for_interface(const char *name, AddressData *network_data) {
+int get_data_for_interface(const char *name, data_address_data_t *network_data) {
 	struct ifaddrs *addresses;
 	const int result = getifaddrs(&addresses);
 	if (result == -1) {

@@ -26,7 +26,7 @@ int network_send(const int *socket_descriptor, uint8_t *message, const int lengt
 
 int get_str_data_for_interface(const char *name, char **network_data);
 
-int get_data_for_interface(const char *name, AddressData *network_data);
+int get_data_for_interface(const char *name, data_address_data_t *network_data);
 
 crc calculate_crc(uint8_t const message[], const int nBytes);
 
