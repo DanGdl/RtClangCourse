@@ -46,7 +46,7 @@ void create_table() {
 /**
  * saves data in DB
  */
-void save(AddressData *data) {
+void save(data_address_data_t *data) {
 	// transaction?
 	PGconn *conn = PQconnectdb("user=postgres password=123456 dbname=postgres");
 
@@ -76,7 +76,7 @@ void save(AddressData *data) {
 	PQfinish(conn);
 }
 
-AddressData* getAll() {
+data_address_data_t* getAll() {
 	PGconn *conn = PQconnectdb("user=postgres password=123456 dbname=postgres");
 
 	if (PQstatus(conn) == CONNECTION_BAD) {

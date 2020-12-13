@@ -12,8 +12,8 @@
 
 void create_table();
 
-void save(AddressData *data);
+void save(data_address_data_t *data);
 
-AddressData* getAll();
+data_address_data_t* getAll();
 
 #endif /* SRC_DATA_DAO_H_ */
