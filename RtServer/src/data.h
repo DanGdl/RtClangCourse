@@ -9,20 +9,22 @@
 
 #include <unictype.h>
 
-typedef struct AddressData {
-	long long id;
-	unsigned short device_id; // 2 Bytes
-	long int time; // 10 bytes
-	int processes; // 4 Bytes
-	uint32_t ip; // 8 Bytes
-	uint32_t mask;
-	unsigned char *mac; // 6 Bytes
-	unsigned int crc; // 4 Bytes
+struct data_address_data {
+	long long id;				//
+	unsigned int crc;			// 4 Bytes
+	unsigned short device_id;	// 2 Bytes
+	long int time;				// 10 bytes
+	int processes;				// 4 Bytes
+	uint32_t ip;				// 8 Bytes
+	uint32_t mask;				// 4 bytes
+	unsigned char mac[6];		// 6 Bytes
 	// total 34 bytes
-} AddressData;
+};
 
-AddressData* create_address_data();
+typedef struct data_address_data data_address_data_t;
 
-void read_from_bytes(uint8_t buffer[], AddressData *data);
+data_address_data_t* create_address_data();
+
+uint get_crc_size(data_address_data_t* data);
 
 #endif

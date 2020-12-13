@@ -92,8 +92,8 @@ int main(int argc, char **argv) {
 		}
 
 		read(connect_d, buf, sizeof(buf));
-		AddressData *data = create_address_data();
-		read_from_bytes(buf, data);
+		data_address_data_t *data = create_address_data();
+		memcpy(data + get_crc_size(data), &buf, 34);
 
 		if (data -> crc == calculate_crc(buf, 30)) {
 			save(data);
