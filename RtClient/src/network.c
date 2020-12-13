@@ -22,7 +22,7 @@
 #include "errors.h"
 
 int network_open_client_socket_by_ip(const char *ip, const int port) {
-	int socket_descriptor = socket(PF_INET, SOCK_DGRAM, 0); // SOCK_STREAM
+	int socket_descriptor = socket(PF_INET, SOCK_STREAM, 0); // SOCK_STREAM
 	if (socket_descriptor <= 0) {
 		log_error("Create socket failed");
 	}
