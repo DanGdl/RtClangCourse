@@ -10,7 +10,6 @@
 #include <unictype.h>
 
 struct data_address_data {
-	long long id;				//
 	unsigned int crc;			// 4 Bytes
 	unsigned short device_id;	// 2 Bytes
 	long int time;				// 10 bytes
@@ -18,7 +17,8 @@ struct data_address_data {
 	uint32_t ip;				// 8 Bytes
 	uint32_t mask;				// 4 bytes
 	unsigned char mac[6];		// 6 Bytes
-	// total 34 bytes
+	long long id;				//
+								// total 32 bytes
 };
 
 typedef struct data_address_data data_address_data_t;
